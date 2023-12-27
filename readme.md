@@ -54,20 +54,6 @@ service will be deployed. Though this example is for localhost you need to insta
 run in ``http://localhost:15672/``  
 Username: guest  
 Password: guest
-  
-##### [Mac OS]  
-I have prepared a bash file **install-rabbitmq-macOS.sh** to install RabbitMQ in MacOS. Type `bash install-rabbitmq-macOS.sh` in 
-your system terminal and after installation completed run `rabbitmq-server` command to start RabbitMQ.
-
-##### [Ubuntu OS]
-Check this for [Installing on Debian and Ubuntu](https://www.rabbitmq.com/install-debian.html)  
-
-RabbitMQ commands for ubuntu  
---to start `sudo service rabbitmq-server start`  
---to restart `sudo service rabbitmq-server restart`  
---to stop `sudo service rabbitmq-server stop`  
---to check status `sudo service rabbitmq-server status`
-
 
 ##### [Windows]  
 Check this for [Installing on Windows](https://www.rabbitmq.com/install-windows.html#installer)
@@ -284,42 +270,3 @@ Because both service are using different database.
 Here you called offer-service api and it's added a new offer record in it's own data source as well as updated product 
 record where *product_id = 1*. 
 
-### So how is this happened?
-From **offer-service** when we add an offer for a specific product, it pushes an event notification to **product-service** 
-with discount_offer and **product-service** received the event then update it's own database according to it's own business
-logic of the event.
-
-### How service to service event working?
-Here RabbitMQ is configured with both offer-service and product-service. In offer-service when a offer added it will push 
-an event to product-service. RabbitMQ push the events as a queue[one by one serially] order from event producer to event
-consumer. For these event offer-service is producer, product-service is consumer. RabbitMQ ensure all event must be pushed 
-to consumer if RabbitMQ server is running.
-
-### What will happen if the RabbitMQ server is shutdown?  
-No events will be pushed to the consumer. If there is any stored events in RabbitMQ server memory before shutdown those 
-will be lost too.  
-**Note:** It is possible to overcome this limitation by using persistence mechanism which will keep safe from losing stored events.
-This mechanism is not implemented here that's why am skipping the issue.    
-
-### What will happen with the events when all product-service instance are shutdown?
-RabbitMQ keeping all the events in itself will wait for any product-service instance when a product-service instance 
-relaunched then RabbitMQ will start to push it's events immediately to running product-service instance. You can test it 
-by shutting down all product-service by typing ``ctrl + c`` in all product-service launching terminal.  
-This functionality is called **Event Driven Development(EDD).** EDD is not a mandatory part of microservice application, 
-It's a smart way to do service to service communication. 
-
-Congratulations you have completed the documentation still recheck the workflow diagram that will make you 100% clear now.
-
-# Conclusion
-So far this is a complete microservice application. You can enhance the application by adding other service like 
-product-service or offer-service(what your requirements demands) by configuring with service-registry and api-gateway.
-You also can furnish the application with other handy application like Hystrix, Zipkin, Feign, Sidecar. There are lots 
-of handy tools to make the application interactive.  
-
-Hystrix is used here as circuit breaker in api-gateway but microservice-ui still not configured with Hystrix functionality 
-yet you can check it in postman by requesting any product-service api by keeping all product-service instance shutdown. 
-In this case Hystrix will respond with a default message instead of responding Internal Server Error(500) HTTP status.
-
-# Copyright & License
-
-MIT License, see the link: [LICENSE](https://github.com/hnjaman/complete-microservice-application/blob/master/LICENSE) file for details.
